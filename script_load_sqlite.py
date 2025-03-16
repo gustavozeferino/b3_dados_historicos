@@ -1,47 +1,5 @@
 import sqlite3
-
-# Conexão com o banco de dados (será criado se não existir)
-conexao = sqlite3.connect("cotacoes_historicas.db")
-cursor = conexao.cursor()
-
-# Criando a tabela
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS cotacoes_historicas (
-    TIPREG TEXT,
-    DTPREG DATE,
-    CODBDI TEXT,
-    CODNEG TEXT,
-    TPMERC TEXT,
-    NOMRES TEXT,
-    ESPECI TEXT,
-    PRAZOT TEXT,
-    MODREF TEXT,
-    PREABE REAL,
-    PREMAX REAL,
-    PREMIN REAL,
-    PREMED REAL,
-    PREULT REAL,
-    PREOFC REAL,
-    PREOFV REAL,
-    TOTNEG INTEGER,
-    QUATOT INTEGER,
-    VOLTOT REAL,
-    PREEXE REAL,
-    INDOPC TEXT,
-    DATVEN DATE,
-    FATCOT TEXT,
-    PTOEXE TEXT,
-    CODISI TEXT,
-    DISMES TEXT
-)
-""")
-print("Tabela criada com sucesso!")
-
-# Salvar alterações e fechar a conexão
-conexao.commit()
-conexao.close()
-
-import sqlite3
+import yaml
 import csv
 
 def importar_csv_para_sqlite(caminho_arquivo_csv, nome_banco, nome_tabela):
@@ -88,7 +46,6 @@ def importar_csv_para_sqlite(caminho_arquivo_csv, nome_banco, nome_tabela):
             DISMES TEXT
         );
         """)
-        print(f"Tabela '{nome_tabela}' criada ou já existente.")
         
         # Abrir o arquivo CSV
         with open(caminho_arquivo_csv, mode='r', encoding='utf-8') as arquivo:
@@ -121,5 +78,19 @@ def importar_csv_para_sqlite(caminho_arquivo_csv, nome_banco, nome_tabela):
             conexao.close()
             print("Conexão com o banco de dados encerrada.")
 
-# Exemplo de uso da função
-importar_csv_para_sqlite("dados.csv", "banco_dados.db", "cotacoes_historicas")
+if __name__ == "__main__":
+    # Carregar configurações do arquivo YAML
+    with open("config.yml", "r") as config_file:
+        config = yaml.safe_load(config_file)
+
+    # Obter configurações do SQLite
+    db_config = config["sqlite"]
+    database_path = db_config["database_path"]
+    timeout = db_config.get("timeout", 5)  # Valor padrão de 5 segundos
+
+    # Obter configurações do arquivo CSV
+    csv_files = config["csv_files"]
+    for csv_file in csv_files:
+        path = csv_file["path"]
+        print(f"Processando: {path}")
+        importar_csv_para_sqlite(path, database_path, "cotacoes_historicas")
