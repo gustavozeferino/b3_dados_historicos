@@ -2,6 +2,7 @@ from datetime import datetime
 import tkinter as tk
 from tkinter import filedialog
 import csv
+import os
 
 class InvalidFormatException(Exception):
     """Primeira linha do arquivo está fora do padrão da B3."""
@@ -33,6 +34,10 @@ def convert_to_csv(input_file, output_file):
 
 # Abrir o arquivo de entrada (para leitura) e o arquivo de saída (para escrita)
     try:
+        # Verificar se o arquivo de entrada existe
+        if not os.path.exists(input_file):
+            raise FileNotFoundError
+
         with open(input_file, mode="r", encoding="utf-8") as input_data, \
             open(output_file, mode="w", newline="", encoding="utf-8") as output_data:
             
@@ -60,11 +65,11 @@ def convert_to_csv(input_file, output_file):
 
 def check_file_header(data):
     """Check if the first line of the data is a header."""
-    TIPO_DE_REGISTRO = data[0:2]
-    NOME_DO_ARQUIVO = data[2:15]
-    CODIGO_DA_ORIGEM = data[15:23]
-    DATA_DA_GERAÇAO_DO_ARQUIVO = data[23:31]
-    RESERVA = data[31:245]
+    TIPO_DE_REGISTRO = data[0:2]                # Tipo de registro
+    NOME_DO_ARQUIVO = data[2:15]                # Nome do arquivo
+    CODIGO_DA_ORIGEM = data[15:23]              # Código da origem
+    DATA_DA_GERAÇAO_DO_ARQUIVO = data[23:31]    # Data da geração do arquivo
+    RESERVA = data[31:245]                      # Reserva
 
     if TIPO_DE_REGISTRO == '00' and CODIGO_DA_ORIGEM == 'BOVESPA ':
         return True
@@ -102,9 +107,6 @@ def processed_data(data):
     
     processed_data = [TIPREG, DTPREG, CODBDI, CODNEG, TPMERC, NOMRES, ESPECI, PRAZOT, MODREF, PREABE, PREMAX, PREMIN, PREMED, PREULT, PREOFC, PREOFV, TOTNEG, QUATOT, VOLTOT, PREEXE, INDOPC, DATVEN, FATCOT, PTOEXE, CODISI, DISMES]
     return processed_data
-
-
-
 
 if __name__ == "__main__":
     # Step 1: Select the input file
