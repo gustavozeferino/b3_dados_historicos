@@ -125,4 +125,13 @@ if __name__ == "__main__":
         print("Arquivo CSV final não especificado.\nFim do programa.")
         exit()
 
+    # Step 3: Convert the input file to a CSV file
+    try:
+        convert_to_csv(input_file, output_file)
+    except Exception as e:
+        print(f"Erro durante a conversão: {e}")
+    finally:    
+        print("Conversão concluída com sucesso.")
+    
+
 
