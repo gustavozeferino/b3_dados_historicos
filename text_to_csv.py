@@ -1,33 +1,10 @@
 from datetime import datetime
-import tkinter as tk
-from tkinter import filedialog
 import csv
 import os
 
 class InvalidFormatException(Exception):
     """Primeira linha do arquivo está fora do padrão da B3."""
     pass
-
-def select_file():
-    """Open a dialog to select an input text file."""
-    root = tk.Tk()
-    root.withdraw()  # Hide the root window
-    input_file = filedialog.askopenfilename(
-        title="Selecione o arquivos de dados fornecido pela B3",
-        filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")]
-    )
-    return input_file
-
-def save_file():
-    """Open a dialog to specify the save location for a new file."""
-    root = tk.Tk()
-    root.withdraw()  # Hide the root window
-    save_path = filedialog.asksaveasfilename(
-        title="Onde você deseja salvar o arquivo CSV?",
-        defaultextension=".csv",
-        filetypes=[("CSV Files", "*.csv"), ("All Files", "*.*")]
-    )
-    return save_path
 
 def convert_to_csv(input_file, output_file):
     """Convert the input text file to a CSV file."""
@@ -62,16 +39,15 @@ def convert_to_csv(input_file, output_file):
     except Exception as e:
         print(f"Erro inesperado: {e}")
     
-
 def check_file_header(data):
     """Check if the first line of the data is a header."""
     TIPO_DE_REGISTRO = data[0:2]                # Tipo de registro
     NOME_DO_ARQUIVO = data[2:15]                # Nome do arquivo
-    CODIGO_DA_ORIGEM = data[15:23]              # Código da origem
+    CODIGO_DA_ORIGEM = data[15:23].strip()      # Código da origem
     DATA_DA_GERAÇAO_DO_ARQUIVO = data[23:31]    # Data da geração do arquivo
     RESERVA = data[31:245]                      # Reserva
 
-    if TIPO_DE_REGISTRO == '00' and CODIGO_DA_ORIGEM == 'BOVESPA ':
+    if TIPO_DE_REGISTRO == '00' and CODIGO_DA_ORIGEM == 'BOVESPA':
         return True
     else:
         return False
@@ -109,30 +85,7 @@ def processed_data(data):
 
     return processed_data
 
-if __name__ == "__main__":
 
-    try:
-        input_file = select_file()
-        if input_file:
-            print(f"Arquivo de dados selecionado: {input_file}")
-        else:
-            print("Nenhum arquivo de dados selecionado.\nFim do programa.")
-            exit()
-
-        output_file = save_file()
-        if output_file:
-            print(f"Arquivo CSV será salvo em: {output_file}")
-        else:
-            print("Arquivo CSV final não especificado.\nFim do programa.")
-            exit()
-
-        convert_to_csv(input_file, output_file)
-
-    except Exception as e:
-        print(f"Erro durante a conversão: {e}")
-        
-    finally:    
-        print("Conversão concluída com sucesso.")
     
 
 
