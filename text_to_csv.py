@@ -31,7 +31,6 @@ def save_file():
 
 def convert_to_csv(input_file, output_file):
     """Convert the input text file to a CSV file."""
-
 # Abrir o arquivo de entrada (para leitura) e o arquivo de saída (para escrita)
     try:
         # Verificar se o arquivo de entrada existe
@@ -42,15 +41,16 @@ def convert_to_csv(input_file, output_file):
             open(output_file, mode="w", newline="", encoding="utf-8") as output_data:
             
             reader = csv.reader(input_data)  # Criar leitor do CSV
-            writer = csv.writer(output_data)  # Criar escritor do CSV
+            writer = csv.writer(output_data, quoting=csv.QUOTE_MINIMAL)  # Criar escritor do CSV
 
             fisrt_line = next(reader, None)
-            if not check_file_header(fisrt_line):
+            if not check_file_header(fisrt_line[0]):
                 raise InvalidFormatException
 
             # Ler e processar cada linha
-            for line in reader:
-                if line[0:2] == '00':
+            for row in reader:
+                line = row[0]
+                if line[0:2] == '01':
                     csv_line = processed_data(line)
                     # Escrever a linha imediatamente no arquivo de saída
                     writer.writerow(csv_line)
@@ -104,32 +104,33 @@ def processed_data(data):
     PTOEXE=data[217:230]                                     # Preço de exercício para opções refer
     CODISI=data[230:242]                                     # Código do papel no sistema ISIN ou código interno do papel
     DISMES=data[242:245]                                     # Número de distribuição do papel
-    
-    processed_data = [TIPREG, DTPREG, CODBDI, CODNEG, TPMERC, NOMRES, ESPECI, PRAZOT, MODREF, PREABE, PREMAX, PREMIN, PREMED, PREULT, PREOFC, PREOFV, TOTNEG, QUATOT, VOLTOT, PREEXE, INDOPC, DATVEN, FATCOT, PTOEXE, CODISI, DISMES]
+
+    processed_data = (TIPREG, DTPREG, CODBDI, CODNEG, TPMERC, NOMRES, ESPECI, PRAZOT, MODREF, PREABE, PREMAX, PREMIN, PREMED, PREULT, PREOFC, PREOFV, TOTNEG, QUATOT, VOLTOT, PREEXE, INDOPC, DATVEN, FATCOT, PTOEXE, CODISI, DISMES)
+
     return processed_data
 
 if __name__ == "__main__":
-    # Step 1: Select the input file
-    input_file = select_file()
-    if input_file:
-        print(f"Arquivo de dados selecionado: {input_file}")
-    else:
-        print("Nenhum arquivo de dados selecionado.\nFim do programa.")
-        exit()
 
-    # Step 2: Specify the output file location
-    output_file = save_file()
-    if output_file:
-        print(f"Arquivo CSV será salvo em: {output_file}")
-    else:
-        print("Arquivo CSV final não especificado.\nFim do programa.")
-        exit()
-
-    # Step 3: Convert the input file to a CSV file
     try:
+        input_file = select_file()
+        if input_file:
+            print(f"Arquivo de dados selecionado: {input_file}")
+        else:
+            print("Nenhum arquivo de dados selecionado.\nFim do programa.")
+            exit()
+
+        output_file = save_file()
+        if output_file:
+            print(f"Arquivo CSV será salvo em: {output_file}")
+        else:
+            print("Arquivo CSV final não especificado.\nFim do programa.")
+            exit()
+
         convert_to_csv(input_file, output_file)
+
     except Exception as e:
         print(f"Erro durante a conversão: {e}")
+        
     finally:    
         print("Conversão concluída com sucesso.")
     
