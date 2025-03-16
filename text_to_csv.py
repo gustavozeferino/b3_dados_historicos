@@ -39,7 +39,7 @@ def convert_to_csv(input_file, output_file):
             writer = csv.writer(output_data)  # Criar escritor do CSV
 
             fisrt_line = next(reader, None)
-            if check_first_line(fisrt_line):
+            if check_file_header(fisrt_line):
                 pass
             else:
                 raise InvalidFormatException
@@ -62,9 +62,18 @@ def convert_to_csv(input_file, output_file):
         print(f"Erro inesperado: {e}")
     
 
-def check_first_line(data):
+def check_file_header(data):
     """Check if the first line of the data is a header."""
-    return True
+    TIPO_DE_REGISTRO = data[0:2]
+    NOME_DO_ARQUIVO = data[2:15]
+    CODIGO_DA_ORIGEM = data[15:23]
+    DATA_DA_GERAÇAO_DO_ARQUIVO = data[23:31]
+    RESERVA = data[31:245]
+
+    if TIPO_DE_REGISTRO == '00' and CODIGO_DA_ORIGEM == 'BOVESPA ':
+        return True
+    else:
+        return False
 
 def processed_data(data):
     """Process the input data and return the processed data."""
