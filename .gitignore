@@ -1,6 +1,15 @@
 # SQLite databases
 *.db
 
+# configuration files
+*.yaml
+*.yml
+*.conf
+*.cfg
+*.ini
+*.json
+*.lock
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
