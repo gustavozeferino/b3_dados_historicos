@@ -6,8 +6,8 @@ class InvalidFormatException(Exception):
     """Primeira linha do arquivo está fora do padrão da B3."""
     pass
 
-def convert_to_csv(input_file, output_file):
-    """Convert the input text file to a CSV file."""
+def converter_para_csv(input_file, output_file):
+    """Converte um arquivo de texto fornecido pela B3 para um arquivo CSV."""
 # Abrir o arquivo de entrada (para leitura) e o arquivo de saída (para escrita)
     try:
         # Verificar se o arquivo de entrada existe
