@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import filedialog
-from text_to_csv import convert_to_csv
+from text_to_csv import converter_para_csv
 
 def select_file():
     """Open a dialog to select an input text file."""
@@ -40,7 +40,7 @@ if __name__ == "__main__":
             print("Arquivo CSV final não especificado.\nFim do programa.")
             exit()
 
-        convert_to_csv(input_file, output_file)
+        converter_para_csv(input_file, output_file)
 
     except Exception as e:
         print(f"Erro durante a conversão: {e}")
