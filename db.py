@@ -111,12 +111,12 @@ def criar_datas_vencimento(caminho_banco):
         conexao = sqlite3.connect(caminho_banco)
         cursor = conexao.cursor()
         
+        cursor.execute(f""" DROP TABLE IF EXISTS datas_vencimento""")
         cursor.execute(f"""
-            DROP TABLE IF EXISTS datas_vencimento;           
             CREATE TABLE datas_vencimento AS select distinct DATVEN as DATA
             from cotacoes_historicas
             where strftime('%Y', DATVEN) <> '9999'
-            ORDER BY DATVEN;
+            ORDER BY DATVEN
         """)
         
         # Confirmar a operação
@@ -146,12 +146,12 @@ def criar_datas_pregao(caminho_banco):
         # Conectar ao banco de dados SQLite
         conexao = sqlite3.connect(caminho_banco)
         cursor = conexao.cursor()
-        
+
+        cursor.execute(f""" DROP TABLE IF EXISTS datas_pregao""")        
         cursor.execute(f"""
-            DROP TABLE IF EXISTS datas_pregao; 
             CREATE TABLE datas_pregao AS select distinct DTPREG as DATA
             from cotacoes_historicas
-            ORDER BY DTPREG;
+            ORDER BY DTPREG
         """)
         
         # Confirmar a operação
@@ -169,4 +169,43 @@ def criar_datas_pregao(caminho_banco):
         if conexao:
             conexao.close()
             print("Conexão com o banco de dados encerrada.")
+
+
+def criar_tabela_ativos_com_opcoes(caminho_banco, tabela_original, tabela_opcoes):
+    """
+    Cria uma tabela com as datas de pregão.
+
+    :param caminho_banco: caminho do banco SQLite
+    """
+    try:
+        # Conectar ao banco de dados SQLite
+        conexao = sqlite3.connect(caminho_banco)
+        cursor = conexao.cursor()
+
+        cursor.execute(f""" DROP TABLE IF EXISTS {tabela_opcoes}""")        
+        cursor.execute(f"""
+            DROP TABLE IF EXISTS {tabela_opcoes}; 
+            CREATE TABLE {tabela_opcoes} AS SELECT *
+            FROM {tabela_original}
+            WHERE   CODISI IN (SELECT DISTINCT CODISI FROM {tabela_original} WHERE TPMERC IN ('070', '080'))
+                    AND TPMERC IN ('010', '070', '080')
+            """)
+        
+        # Confirmar a operação
+        conexao.commit()
+        print(f"Tabela {tabela_opcoes} criada com sucesso.")
+    
+    except sqlite3.Error as e:
+        print(f"Erro ao trabalhar com o banco de dados: {e}")
+    
+    except Exception as e:
+        print(f"Erro inesperado: {e}")
+    
+    finally:
+        # Fechar a conexão com o banco
+        if conexao:
+            conexao.close()
+            print("Conexão com o banco de dados encerrada.")
+
+
 
