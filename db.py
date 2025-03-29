@@ -222,7 +222,6 @@ def criar_tabela_cotacao_bova11(caminho_banco, tabela_original, tabela_final):
 
         cursor.execute(f""" DROP TABLE IF EXISTS {tabela_final}""")        
         cursor.execute(f"""
-            DROP TABLE IF EXISTS {tabela_final}; 
             CREATE TABLE {tabela_final} AS SELECT DTPREG, CODNEG, PREABE, PREMIN, PREMAX, PREULT, QUATOT
             FROM {tabela_original}
             WHERE   CODNEG  = 'BOVA11'
@@ -261,7 +260,6 @@ def criar_tabela_opcoes_ativos(caminho_banco, tabela_original, tabela_final, ati
 
         cursor.execute(f""" DROP TABLE IF EXISTS {tabela_final}""")        
         cursor.execute(f"""
-            DROP TABLE IF EXISTS {tabela_final}; 
             CREATE TABLE {tabela_final} AS SELECT DTPREG, CODNEG, PREEXE, DATVEN, PREABE, PREMIN, PREMAX, PREULT, QUATOT
             FROM {tabela_original}
             WHERE   CODNEG  NOT LIKE '{ativo}%'
