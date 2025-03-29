@@ -209,3 +209,77 @@ def criar_tabela_ativos_com_opcoes(caminho_banco, tabela_original, tabela_opcoes
 
 
 
+def criar_tabela_cotacao_bova11(caminho_banco, tabela_original, tabela_final):
+    """
+    Cria uma tabela com as cotações de BOVA11 apenas.
+
+    :param caminho_banco: caminho do banco SQLite
+    """
+    try:
+        # Conectar ao banco de dados SQLite
+        conexao = sqlite3.connect(caminho_banco)
+        cursor = conexao.cursor()
+
+        cursor.execute(f""" DROP TABLE IF EXISTS {tabela_final}""")        
+        cursor.execute(f"""
+            DROP TABLE IF EXISTS {tabela_final}; 
+            CREATE TABLE {tabela_final} AS SELECT DTPREG, CODNEG, PREABE, PREMIN, PREMAX, PREULT, QUATOT
+            FROM {tabela_original}
+            WHERE   CODNEG  = 'BOVA11'
+                    AND TPMERC = '010')
+            """)
+        
+        # Confirmar a operação
+        conexao.commit()
+        print(f"Tabela {tabela_final} criada com sucesso.")
+    
+    except sqlite3.Error as e:
+        print(f"Erro ao trabalhar com o banco de dados: {e}")
+    
+    except Exception as e:
+        print(f"Erro inesperado: {e}")
+    
+    finally:
+        # Fechar a conexão com o banco
+        if conexao:
+            conexao.close()
+            print("Conexão com o banco de dados encerrada.")
+
+
+
+def criar_tabela_opcoes_ativos(caminho_banco, tabela_original, tabela_final, ativo):  
+
+    """
+    Cria uma tabela com as opções de ativos apenas.
+
+    :param caminho_banco: caminho do banco SQLite
+    """
+    try:
+        # Conectar ao banco de dados SQLite
+        conexao = sqlite3.connect(caminho_banco)
+        cursor = conexao.cursor()
+
+        cursor.execute(f""" DROP TABLE IF EXISTS {tabela_final}""")        
+        cursor.execute(f"""
+            DROP TABLE IF EXISTS {tabela_final}; 
+            CREATE TABLE {tabela_final} AS SELECT DTPREG, CODNEG, PREEXE, DATVEN, PREABE, PREMIN, PREMAX, PREULT, QUATOT
+            FROM {tabela_original}
+            WHERE   CODNEG  NOT LIKE '{ativo}%'
+                    AND TPMERC IN ('070', '080');
+            """)
+        
+        # Confirmar a operação
+        conexao.commit()
+        print(f"Tabela {tabela_final} criada com sucesso.")
+    
+    except sqlite3.Error as e:
+        print(f"Erro ao trabalhar com o banco de dados: {e}")
+    
+    except Exception as e:
+        print(f"Erro inesperado: {e}")
+    
+    finally:
+        # Fechar a conexão com o banco
+        if conexao:
+            conexao.close()
+            print("Conexão com o banco de dados encerrada.")
