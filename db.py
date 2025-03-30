@@ -102,7 +102,7 @@ def importar_csv_para_sqlite(caminho_arquivo_csv, caminho_banco, nome_tabela):
 
 def criar_datas_vencimento(caminho_banco):
     """
-    Cria uma tabela com as datas de vencimento de opções.
+    Cria uma tabela com as datas de vencimento de opções excluindo opções de IBOV e datas inválidas.
 
     :param caminho_banco: caminho do banco SQLite
     """
@@ -171,29 +171,31 @@ def criar_datas_pregao(caminho_banco):
             print("Conexão com o banco de dados encerrada.")
 
 
-def criar_tabela_ativos_com_opcoes(caminho_banco, tabela_original, tabela_opcoes):
+def criar_tabela_ativos_com_opcoes(caminho_banco, tabela_original="cotacoes_historicas", tabela_destino="ativos_com_opcoes"):
     """
-    Cria uma tabela com as datas de pregão.
+    Cria uma tabela com o CODNEG e ISIN únicos dos ativos que possuem opções negoaciadas
 
     :param caminho_banco: caminho do banco SQLite
+    :param tabela_original: tabela com o historico de cotações
+    :param tabela_destino: tabela dos ativos com opções
     """
     try:
         # Conectar ao banco de dados SQLite
         conexao = sqlite3.connect(caminho_banco)
         cursor = conexao.cursor()
 
-        cursor.execute(f""" DROP TABLE IF EXISTS {tabela_opcoes}""")        
+        cursor.execute(f""" DROP TABLE IF EXISTS {tabela_destino}""")        
+
         cursor.execute(f"""
-            DROP TABLE IF EXISTS {tabela_opcoes}; 
-            CREATE TABLE {tabela_opcoes} AS SELECT *
+            CREATE TABLE {tabela_destino} AS SELECT DISTINCT CODNEG, CODISI
             FROM {tabela_original}
             WHERE   CODISI IN (SELECT DISTINCT CODISI FROM {tabela_original} WHERE TPMERC IN ('070', '080'))
-                    AND TPMERC IN ('010', '070', '080')
-            """)
+                    AND TPMERC = '010'
+            ORDER BY CODNEG""")
         
         # Confirmar a operação
         conexao.commit()
-        print(f"Tabela {tabela_opcoes} criada com sucesso.")
+        print(f"Tabela {tabela_destino} criada com sucesso.")
     
     except sqlite3.Error as e:
         print(f"Erro ao trabalhar com o banco de dados: {e}")
@@ -206,7 +208,6 @@ def criar_tabela_ativos_com_opcoes(caminho_banco, tabela_original, tabela_opcoes
         if conexao:
             conexao.close()
             print("Conexão com o banco de dados encerrada.")
-
 
 
 def criar_tabela_cotacao_bova11(caminho_banco, tabela_original, tabela_final):
@@ -246,7 +247,7 @@ def criar_tabela_cotacao_bova11(caminho_banco, tabela_original, tabela_final):
 
 
 
-def criar_tabela_opcoes_ativos(caminho_banco, tabela_original, tabela_final, ativo):  
+def criar_tabela_opcoes_ativos(caminho_banco, tabela_cotacoes="cotacoes_historicas", tabela_final="pregao_opcoes", ativo="BOVA11"):  
 
     """
     Cria uma tabela com as opções de ativos apenas.
@@ -258,14 +259,61 @@ def criar_tabela_opcoes_ativos(caminho_banco, tabela_original, tabela_final, ati
         conexao = sqlite3.connect(caminho_banco)
         cursor = conexao.cursor()
 
-        cursor.execute(f""" DROP TABLE IF EXISTS {tabela_final}""")        
+
         cursor.execute(f"""
-            CREATE TABLE {tabela_final} AS SELECT DTPREG, CODNEG, PREEXE, DATVEN, PREABE, PREMIN, PREMAX, PREULT, QUATOT, TPMERC
-            FROM {tabela_original}
-            WHERE   CODNEG LIKE '{ativo}%'
-                    AND TPMERC IN ('070', '080');
-            """)
+            DROP TABLE IF EXISTS temp_cotacoes_opcoes
+        """)        
         
+        cursor.execute(f"""
+            CREATE TABLE temp_cotacoes_opcoes AS SELECT * 
+            FROM {tabela_cotacoes} 
+            WHERE   CODISI IN (SELECT CODISI FROM ativos_com_opcoes WHERE CODNEG = '{ativo}')
+                    AND TPMERC IN ('070', '080')
+        """)        
+
+        cursor.execute(f"""
+            DROP TABLE IF EXISTS {tabela_final}
+        """)        
+
+        cursor.execute(f"""
+            CREATE TABLE {tabela_final} (
+                DTPREG TEXT,
+                ATIVO TEXT,
+                CODISI TEXT,
+                DATVEN TEXT,
+                PREEXE REAL,
+                TIPO TEXT,
+                CODNEG TEXT,
+                PREULT REAL,
+                PRIMARY KEY (DTPREG, ATIVO, DATVEN, PREEXE, CODNEG))
+        """)     
+
+        cursor.execute(f"""
+            INSERT INTO {tabela_final} (DTPREG, ATIVO, CODISI, DATVEN, PREEXE, TIPO, CODNEG, PREULT)
+            SELECT DISTINCT
+                cotacoes.DTPREG,
+                ativos.CODNEG,
+                cotacoes.CODISI,
+                cotacoes.DATVEN,
+                cotacoes.PREEXE,
+                CASE 
+                    WHEN cotacoes.TPMERC = '070' THEN 'CALL'
+                    WHEN cotacoes.TPMERC = '080' THEN 'PUT'
+                END AS TIPO,
+                cotacoes.CODNEG,
+                cotacoes.PREULT
+            FROM temp_cotacoes_opcoes AS cotacoes
+            INNER JOIN ativos_com_opcoes AS ativos ON cotacoes.CODISI = ativos.CODISI
+        """)             
+
+        cursor.execute(f"""
+            DROP TABLE IF EXISTS temp_cotacoes_opcoes
+        """)             
+
+        cursor.execute(f"""
+
+        """)             
+
         # Confirmar a operação
         conexao.commit()
         print(f"Tabela {tabela_final} criada com sucesso.")
