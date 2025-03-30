@@ -115,7 +115,7 @@ def criar_datas_vencimento(caminho_banco):
         cursor.execute(f"""
             CREATE TABLE datas_vencimento AS select distinct DATVEN as DATA
             from cotacoes_historicas
-            where strftime('%Y', DATVEN) <> '9999'
+            where strftime('%Y', DATVEN) <> '9999' AND CODNEG NOT LIKE 'IBOV%'
             ORDER BY DATVEN
         """)
         
@@ -225,7 +225,7 @@ def criar_tabela_cotacao_bova11(caminho_banco, tabela_original, tabela_final):
             CREATE TABLE {tabela_final} AS SELECT DTPREG, CODNEG, PREABE, PREMIN, PREMAX, PREULT, QUATOT
             FROM {tabela_original}
             WHERE   CODNEG  = 'BOVA11'
-                    AND TPMERC = '010')
+                    AND TPMERC = '010'
             """)
         
         # Confirmar a operação
@@ -260,9 +260,9 @@ def criar_tabela_opcoes_ativos(caminho_banco, tabela_original, tabela_final, ati
 
         cursor.execute(f""" DROP TABLE IF EXISTS {tabela_final}""")        
         cursor.execute(f"""
-            CREATE TABLE {tabela_final} AS SELECT DTPREG, CODNEG, PREEXE, DATVEN, PREABE, PREMIN, PREMAX, PREULT, QUATOT
+            CREATE TABLE {tabela_final} AS SELECT DTPREG, CODNEG, PREEXE, DATVEN, PREABE, PREMIN, PREMAX, PREULT, QUATOT, TPMERC
             FROM {tabela_original}
-            WHERE   CODNEG  NOT LIKE '{ativo}%'
+            WHERE   CODNEG LIKE '{ativo}%'
                     AND TPMERC IN ('070', '080');
             """)
         
