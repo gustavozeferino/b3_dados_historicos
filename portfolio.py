@@ -1,3 +1,6 @@
+import pandas as pd
+
+
 class Portfolio:
     def __init__(self):
         # Inicializa o dicionário para armazenar os dados da simulação
@@ -34,7 +37,8 @@ class Portfolio:
                 "lote": None,
                 "preco_compra": None,
                 "preco_venda": None,
-                "lucro": None }
+                "lucro": None,
+                "status": "Aberto" }
             
         # Atualiza o histórico
         self.historico[chave_posicao]["data_abertura"] = data_pregao
@@ -43,8 +47,6 @@ class Portfolio:
             self.historico[chave_posicao]["preco_compra"] = preco
         else:
             self.historico[chave_posicao]["preco_venda"] = preco
-        
-        
         
         # Atualiza o valor total das posições
         self.portfolio[data_pregao]["valor_total"] = sum(
@@ -73,8 +75,7 @@ class Portfolio:
                 self.historico[chave_posicao]["preco_compra"] = preco                
 
             self.historico[chave_posicao]['lucro'] = abs(self.historico[chave_posicao]["lote"]) * (self.historico[chave_posicao]["preco_venda"] - self.historico[chave_posicao]["preco_compra"])         
-    
-        
+            self.historico[chave_posicao]['status'] = "Fechado"
 
     def posicoes(self, data_pregao):
         """
@@ -99,20 +100,24 @@ class Portfolio:
         for data_pregao, dados in self.portfolio.items():
             print(f"{data_pregao}: {dados['valor_total']}")
 
-# Exemplo de uso da classe
-portfolio = Portfolio()
+    def posicoes_fechadas(self):
+        dados = []
+        for chave_posicao, dados_posicao in self.historico.items():
+            if dados_posicao["status"] == "Fechado":
+                dados.append([chave_posicao, dados_posicao['data_abertura'], dados_posicao['data_fechamento'], dados_posicao['lote'], dados_posicao['preco_compra'], dados_posicao['preco_venda'], dados_posicao['lucro']])
 
-# Adicionando posições
-portfolio.add_position("2025-03-28", "AAPL", 10, 150.00)
-portfolio.add_position("2025-03-28", "MSFT", 5, 300.00)
-portfolio.add_position("2025-03-29", "GOOG", 8, 2800.00)
+        if dados:
+            # Cria um DataFrame a partir dos dados
+            df = pd.DataFrame(dados, columns=["Opção", "Data Abertura", "Data Fechamento", "Lote", "Preço Compra", "Preço Venda", "L/P"])
+            # Exibe o DataFrame formatado
+            print(df.to_string(index=False))
+        else:
+            print("Nenhuma posição fechada encontrada.")
 
-# Removendo uma posição
-portfolio.remove_position("2025-03-28", "AAPL")
-
-# Recuperando informações
-print(portfolio.get_positions("2025-03-28"))
-print("Total Value:", portfolio.get_total_value("2025-03-28"))
-
-# Exibindo todo o histórico da simulação
-portfolio.display_simulation()
+    def copia_posicoes(self, data_pregao_origem, data_pregao_destino):
+        """
+        Copia as posições de uma data de origem para uma data de destino.
+        """
+        if data_pregao_origem in self.portfolio:
+            self.portfolio[data_pregao_destino] = self.portfolio[data_pregao_origem].copy()
+                
